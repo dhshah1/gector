@@ -1,3 +1,19 @@
+## Changes
+
+Try and add more POS related transformations on top of verb transformations GECTOR is using.
+Using [LemmaInflect](https://github.com/bjascob/LemmInflect) to find possible inflections (caveat: can be multiple possible inflections for a single pos tag, so only choosing first one for now)
+
+Files modified are utils/preprocess_data.py and utils/helpers.py to add encoding decoding for the pos tags
+
+Training on just FCE data shows slight decrease in model performance:
+Original Tag Set: Precision-0.4906, Recall-0.2638, F0.5-0.4186
+With Add POS Tags: Precision:0.4728, Recall-0.2583, F0.5-0.4055
+
+For the FCE train set this adds about 1970 additional POS tags, (for comparison there are 3213 gector verb transformations). If we look at the model vocab after training only 12 new pos tags were added. So perhaps the types of transformations these POS tags additionally encode on top of the exisiting tag set is limited. Will try with a larger set of data.
+
+Should look at the predicted tag set distribution for more insight on the types of additional pos tags being predicted
+Maybe can try a language model to choose between different inflections? 
+
 # GECToR – Grammatical Error Correction: Tag, Not Rewrite
 
 This repository provides code for training and testing state-of-the-art models for grammatical error correction with the official PyTorch implementation of the following paper:

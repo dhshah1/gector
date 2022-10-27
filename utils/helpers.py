@@ -16,6 +16,11 @@ REPLACEMENTS = {
     "'ve": "' ve",
 }
 
+from lemminflect import getLemma
+from lemminflect import getInflection
+
+import string
+
 
 def get_verb_form_dicts():
     path_to_dict = os.path.join(VOCAB_DIR, "verb-form-vocab.txt")
@@ -117,6 +122,18 @@ def convert_using_plural(token, smart_action):
     else:
         raise Exception(f"Unknown action type {smart_action}")
 
+def convert_using_pos_transform(token, transform_tag):
+    if token in string.punctuation:
+        return None
+    [_, _, upos_tag, pos_tag] = transform_tag.split("_")
+    lemma = getLemma(token, upos_tag)
+    if not lemma or not lemma[0]:
+        return None
+    inflections = getInflection(lemma[0], pos_tag)
+    inflections = list(filter(lambda inflection: inflection != token and inflection != lemma[0], inflections))
+    if not inflections:
+        return lemma[0]
+    return inflections[0]
 
 def apply_reverse_transformation(source_token, transform):
     if transform.startswith("$TRANSFORM"):
@@ -135,6 +152,9 @@ def apply_reverse_transformation(source_token, transform):
         # deal with single/plural
         if transform.startswith("$TRANSFORM_AGREEMENT"):
             return convert_using_plural(source_token, transform)
+        # deal with pos transform
+        if transform.startswith("$TRANSFORM_POS"):
+            return convert_using_pos_transform(source_token, transform)
         # raise exception if not find correct type
         raise Exception(f"Unknown action type {transform}")
     else:

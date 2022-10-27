@@ -9,6 +9,9 @@ from tqdm import tqdm
 from helpers import write_lines, read_parallel_lines, encode_verb_form, \
     apply_reverse_transformation, SEQ_DELIMETERS, START_TOKEN
 
+from lemminflect import getLemma
+from lemminflect import getInflection
+import string
 
 def perfect_align(t, T, insertions_allowed=0,
                   cost_function=Levenshtein.distance):
@@ -168,6 +171,30 @@ def check_verb(source_token, target_token):
     else:
         return None
 
+tag_mappings = { 
+    'VERB': ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'MD'],
+    'ADJ': ['JJ', 'JJR', 'JJS'], 
+    'ADV': ['RB', 'RBR', 'RBS'], 
+    'NOUN': ['NN', 'NNS'],
+    'PROPN': ['NNP', 'NNPS'],
+    'AUX': ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'MD']
+}
+
+def check_pos_transform(source_token, target_token):
+    if source_token in string.punctuation:
+        return None
+    for upos_tag in tag_mappings:
+        for pos_tag in tag_mappings[upos_tag]:
+            lemma = getLemma(source_token, upos_tag)
+            if not lemma or not lemma[0]:
+                continue
+            inflections = getInflection(lemma[0], pos_tag)
+            if not inflections:
+                continue
+            for inflection in inflections:
+                if inflection == target_token:
+                    return f"$TRANSFORM_POS_{upos_tag}_{pos_tag}"
+    return None
 
 def apply_transformation(source_token, target_token):
     target_tokens = target_token.split()
@@ -176,7 +203,8 @@ def apply_transformation(source_token, target_token):
         transform = check_split(source_token, target_tokens)
         if transform:
             return transform
-    checks = [check_equal, check_casetype, check_verb, check_plural]
+    # checks = [check_equal, check_casetype, check_verb, check_plural]
+    checks = [check_equal, check_casetype, check_verb, check_plural, check_pos_transform]
     for check in checks:
         transform = check(source_token, target_token)
         if transform:
