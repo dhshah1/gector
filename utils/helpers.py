@@ -130,9 +130,9 @@ def convert_using_pos_transform(token, transform_tag):
     if not lemma or not lemma[0]:
         return None
     inflections = getInflection(lemma[0], pos_tag)
-    inflections = list(filter(lambda inflection: inflection != token and inflection != lemma[0], inflections))
-    if not inflections:
-        return lemma[0]
+    inflections = list(filter(lambda inflection: inflection != token, inflections))
+    if not inflections or len(inflections) > 1:
+        return None
     return inflections[0]
 
 def apply_reverse_transformation(source_token, transform):

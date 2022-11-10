@@ -189,7 +189,7 @@ def check_pos_transform(source_token, target_token):
             if not lemma or not lemma[0]:
                 continue
             inflections = getInflection(lemma[0], pos_tag)
-            if not inflections:
+            if not inflections or len(inflections) > 1:
                 continue
             for inflection in inflections:
                 if inflection == target_token:
